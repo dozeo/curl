@@ -70,15 +70,15 @@ endif(HAVE_FEATURES_H)
 
 # The rest of the build
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-if(CURL_USE_ARES)
-  include_directories(${CARES_INCLUDE_DIR})
-endif()
+#include_directories(${CMAKE_CURRENT_BINARY_DIR}/../include)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
+#include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+#include_directories(${CMAKE_CURRENT_BINARY_DIR})
+#if(CURL_USE_ARES)
+#  include_directories(${CARES_INCLUDE_DIR})
+#endif()
 
 if(CURL_STATICLIB)
   # Static lib
@@ -93,6 +93,27 @@ add_library(
   ${CURL_USER_DEFINED_DYNAMIC_OR_STATIC}
   ${HHEADERS} ${CSOURCES}
   )
+
+list(APPEND inc_dirs
+	"${CMAKE_CURRENT_BINARY_DIR}/../include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/.."
+	"${CMAKE_CURRENT_BINARY_DIR}/.."
+	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_BINARY_DIR}"
+	"${CURL_BINARY_DIR}"
+	)
+list(APPEND public_inc_dir
+	"${CMAKE_CURRENT_SOURCE_DIR}/../include"
+	"${CMAKE_CURRENT_BINARY_DIR}/../include/curl"
+	)
+
+if(CURL_USE_ARES)
+	list(APPEND inc_dirs ${CARES_INCLUDE_DIR})
+endif()
+
+set_target_properties(${LIB_NAME} PROPERTIES
+	INCLUDE_DIRECTORIES "${inc_dirs};${public_inc_dir}"
+	INTERFACE_INCLUDE_DIRECTORIES "${public_inc_dir}")
 
 target_link_libraries(${LIB_NAME} ${CURL_LIBS})
 
