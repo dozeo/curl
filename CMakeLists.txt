@@ -77,10 +77,11 @@ if(BUILD_DASHBOARD_REPORTS)
   include(CTest)
 endif(BUILD_DASHBOARD_REPORTS)
 
-if(MSVC)
-  option(BUILD_RELEASE_DEBUG_DIRS "Set OFF to build each configuration to a separate directory" OFF)
-  mark_as_advanced(BUILD_RELEASE_DEBUG_DIRS)
-endif()
+# could be xcode too so don't check for MSVC only
+#if(MSVC OR )
+option(BUILD_RELEASE_DEBUG_DIRS "Set ON to build each configuration to a separate directory (if multiple configurations are supported by generator)" OFF)
+mark_as_advanced(BUILD_RELEASE_DEBUG_DIRS)
+#endif()
 
 option(CURL_HIDDEN_SYMBOLS "Set to ON to hide libcurl internal symbols (=hide all symbols that aren't officially external)." ON)
 mark_as_advanced(CURL_HIDDEN_SYMBOLS)
@@ -829,6 +830,21 @@ function(TRANSFORM_MAKEFILE_INC INPUT_FILE OUTPUT_FILE)
   file(WRITE ${OUTPUT_FILE} ${MAKEFILE_INC_TEXT})
 
 endfunction()
+
+# simplify output directories on platforms with multiple configurations
+if(NOT BUILD_RELEASE_DEBUG_DIRS)
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib)
+  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif()
 
 add_subdirectory(lib)
 if(BUILD_CURL_EXE)

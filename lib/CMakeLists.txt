@@ -11,6 +11,7 @@ include(${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake)
 list(APPEND HHEADERS
   ${CMAKE_CURRENT_BINARY_DIR}/curl_config.h
   ${CURL_BINARY_DIR}/include/curl/curlbuild.h
+  ${CURL_SOURCE_DIR}/include/curl/curl.h
   )
 
 if(MSVC)
@@ -83,6 +84,7 @@ endif(HAVE_FEATURES_H)
 if(CURL_STATICLIB)
   # Static lib
   set(CURL_USER_DEFINED_DYNAMIC_OR_STATIC STATIC)
+  list(APPEND interface_definitions CURL_STATICLIB)
 else()
   # DLL / so dynamic lib
   set(CURL_USER_DEFINED_DYNAMIC_OR_STATIC SHARED)
@@ -102,6 +104,7 @@ list(APPEND inc_dirs
 	"${CMAKE_CURRENT_BINARY_DIR}"
 	"${CURL_BINARY_DIR}"
 	)
+
 list(APPEND public_inc_dir
 	"${CMAKE_CURRENT_SOURCE_DIR}/../include"
 	"${CMAKE_CURRENT_BINARY_DIR}/../include/curl"
@@ -111,9 +114,17 @@ if(CURL_USE_ARES)
 	list(APPEND inc_dirs ${CARES_INCLUDE_DIR})
 endif()
 
+list(APPEND definitions BUILDING_LIBCURL)
+
 set_target_properties(${LIB_NAME} PROPERTIES
-	INCLUDE_DIRECTORIES "${inc_dirs};${public_inc_dir}"
-	INTERFACE_INCLUDE_DIRECTORIES "${public_inc_dir}")
+  INCLUDE_DIRECTORIES "${inc_dirs};${public_inc_dir}"
+  INTERFACE_INCLUDE_DIRECTORIES "${public_inc_dir}"
+  COMPILE_DEFINITIONS "${definitions}"
+  INTERFACE_COMPILE_DEFINITIONS "${interface_definitions}"
+  # Remove the "lib" prefix since the library is already named "libcurl".
+  PREFIX ""
+  IMPORT_PREFIX ""
+  )
 
 target_link_libraries(${LIB_NAME} ${CURL_LIBS})
 
@@ -121,21 +132,7 @@ if(WIN32)
   add_definitions( -D_USRDLL )
 endif()
 
-set_target_properties(${LIB_NAME} PROPERTIES COMPILE_DEFINITIONS BUILDING_LIBCURL)
-
 setup_curl_dependencies(${LIB_NAME})
-
-# Remove the "lib" prefix since the library is already named "libcurl".
-set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
-set_target_properties(${LIB_NAME} PROPERTIES IMPORT_PREFIX "")
-
-if(MSVC)
-  if(NOT BUILD_RELEASE_DEBUG_DIRS)
-    # Ugly workaround to remove the "/debug" or "/release" in each output
-    set_target_properties(${LIB_NAME} PROPERTIES PREFIX "../")
-    set_target_properties(${LIB_NAME} PROPERTIES IMPORT_PREFIX "../")
-  endif()
-endif()
 
 if(WIN32)
   if(NOT CURL_STATICLIB)
