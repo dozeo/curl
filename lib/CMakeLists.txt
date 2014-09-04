@@ -1,9 +1,16 @@
 set(LIB_NAME libcurl)
 
+if(HAVE_SYS_TYPES_H)
+  set(CURL_PULL_SYS_TYPES_H 1)
+endif()
+
 configure_file(${CURL_SOURCE_DIR}/include/curl/curlbuild.h.cmake
   ${CURL_BINARY_DIR}/include/curl/curlbuild.h)
 configure_file(curl_config.h.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/curl_config.h)
+
+message(STATUS "CURL_BINARY_DIR: ${CURL_BINARY_DIR}")
+message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 
 transform_makefile_inc("Makefile.inc" "${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake")
 include(${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake)

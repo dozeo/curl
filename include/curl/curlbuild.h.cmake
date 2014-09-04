@@ -143,7 +143,8 @@
 #  include <ws2tcpip.h>
 #endif
 
-#ifdef HAVE_SYS_SOCKET_H
+#cmakedefine CURL_PULL_SYS_TYPES_H ${CURL_PULL_SYS_TYPES_H}
+#ifdef CURL_PULL_SYS_TYPES_H
 #  include <sys/socket.h>
 #endif
 
